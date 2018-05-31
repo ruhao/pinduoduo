@@ -6,19 +6,31 @@
     </div>
     <div class="Nav">
     <ul id="GetLength">
-      <li v-for="(item,index) in TypeList" :key=index>
+      <li v-for="(item,index) in TypeList" :key=index @click="Change(index)">
         {{item.opt_name}}
       </li>
     </ul>
     </div>
-    <div class="GoodsList">
+    <div class="GoodsList" v-if="GoodsList.length>0">
       <ul>
         <li v-for="(item,index) in GoodsList" :key=index @click="PageJump(item.goods_id)">
-       <!-- <img :src="item.goods_image_url" alt="">
-       <img :src="item.goods_thumbnail_url" alt=""> -->
-       {{item.goods_name}}
+        <div class="Listleft"><img :src="item.goods_thumbnail_url" alt="图片不见了。"></div>
+        <div class="ListRight">
+          <p>{{item.goods_name}}</p>
+          <div>
+            <div>
+              <p></p>
+              <div></div>
+              <p></p>
+            </div>
+            <div></div>
+          </div>
+          </div>
       </li> 
-    </ul>  
+     </ul>  
+    </div>
+    <div class="GoodsList" v-else>
+      暂未发现
     </div>
   </div>
 </template>
@@ -79,14 +91,23 @@ export default {
       //获取代签名的Url
       let SearchUrl = GetPinDuoDuoSearchApi(this.SearchData);
       this.axios.post(SearchUrl).then(res => {
-        this.GoodsList = res.data.goods_search_response.goods_list;
-        console.log(this.GoodsList);
+        if (res.data.goods_search_response) {
+          this.GoodsList = res.data.goods_search_response.goods_list;
+        }else{
+          this.GoodsList = []; 
+        }
+        console.log(this.GoodsList)
       });
     },
     GetSearchedGoods() {
       //重置opt_id，ID
       this.SearchData.opt_id = "";
       this.SearchData.keyword = this.keyword;
+      this.GetGoodsList();
+    },
+    Change(index) {
+      this.SearchData.keyword = "";
+      this.SearchData.opt_id = this.TypeList[index].opt_id;
       this.GetGoodsList();
     }
   },
@@ -100,10 +121,17 @@ export default {
   },
   updated() {
     let Nav = document.getElementById("GetLength");
-    console.log(Nav.children);
-    if (document.getElementsByClassName("Nav")[0]) {
-      console.log(2);
+    let LiLength = Nav.children.length;
+    let UlLength = 0;
+    for (let i = 0; i < LiLength; i++) {
+      UlLength =
+        UlLength +
+        Number(
+          parseInt(window.getComputedStyle(Nav.children[i], null)["width"])
+        ) +
+        10;
     }
+    document.getElementById("GetLength").style.width = UlLength + "px";
   }
 };
 </script>
@@ -111,23 +139,28 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 .bgcolor {
-  background: #cccccc;
+  height: 100%;
+  background-size: cover;
+  position: fixed;
+  width: 100%;
   display: flex;
   flex-direction: column;
 }
 .Search {
   width: 100%;
   position: relative;
-  height: 29px;
+  height: 33px;
+  background: #eeeeee;
+  padding-bottom: 5px;
 }
 .Search input {
   border: 0;
   width: 96%;
-  height: 24px;
+  height: 29px;
   margin: 5px 2%;
   color: gray;
   text-align: center;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 18px;
   border-radius: 3px;
 }
@@ -146,21 +179,39 @@ export default {
   margin-top: 2px;
 }
 .Nav {
-  height: 24px;
-  margin-top: 5px;
+  height: 30px;
   overflow-x: scroll;
   padding: 0 2%;
   width: 96%;
   background: white;
+  padding-bottom: 5px;
 }
 .Nav ul {
+  padding-top: 5px;
   overflow: hidden;
   list-style: none;
 }
 .Nav ul li {
   float: left;
-  margin: 0 5px;
+  padding: 0 5px;
   font-size: 12px;
   line-height: 24px;
+}
+.GoodsList{
+  flex: 1;
+  overflow-y: scroll;
+}
+.GoodsList li {
+  width: 100%;
+  display: flex;
+}
+.GoodsList .Listleft {
+  width: 35%;
+}
+.GoodsList .Listleft img {
+  width: 80%;
+}
+.GoodsList .ListRight {
+  flex: 1;
 }
 </style>
